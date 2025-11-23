@@ -183,12 +183,6 @@
 
     .footer-text { color: #475569; /* slate-600 */ }
     html.dark .footer-text { color: #64748B; /* slate-500 */ }
-
-  </style>
-</head>
-<body class="text-base"> <!-- Base text color is now handled by body style above -->
-<!-- ナビゲーションバー - ここから貼り付け開始 -->
-<style>
   /* カラーテーマCSS変数 */
   :root { /* Light Theme (Default) */
     --app-bg-color: #f9fafb;
@@ -279,7 +273,11 @@
     cursor: pointer;
     user-select: none;
   }
-</style>
+  </style>
+</head>
+<body class="text-base"> <!-- Base text color is now handled by body style above -->
+  
+<!-- ナビゲーションバー - ここから貼り付け開始 -->
 
 <div id="top-nav-bar">
   <div style="max-width: 1280px; margin: 0 auto; padding: 0.5rem 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 1.5rem; font-size: 0.875rem;">
@@ -330,6 +328,7 @@
   })();
 </script>
 <!-- ナビゲーションバー - ここまで貼り付け終了 -->
+  
   <div class="min-h-screen flex flex-col items-center p-4 sm:p-8">
     <header class="w-full max-w-6xl mb-8 flex justify-between items-center">
       <div class="text-center flex-grow">
@@ -758,4 +757,5 @@
 </script>
 </body>
 </html>
+
 
