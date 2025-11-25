@@ -230,6 +230,60 @@
     --border-color: #b0b0b0;
   }
   
+
+  </style>
+</head>
+<body class="text-base"> <!-- Base text color is now handled by body style above -->
+  
+<!-- ナビゲーションバー - ここから貼り付け開始 -->
+<style>
+  /* カラーテーマCSS変数 */
+  :root { /* Light Theme (Default) */
+    --app-bg-color: #f9fafb;
+    --app-text-color: #111827;
+    --header-bg-color: rgba(255, 255, 255, 0.8);
+    --modal-bg-color: #ffffff;
+    --button-hover-bg-color: #d1d5db;
+    --link-active-text-color: #3730a3;
+    --border-color: #d1d5db;
+  }
+  html.dark {
+    --app-bg-color: #111827;
+    --app-text-color: #f3f4f6;
+    --header-bg-color: rgba(31, 41, 55, 0.8);
+    --modal-bg-color: #1f2937;
+    --button-hover-bg-color: #6b7280;
+    --link-active-text-color: #e0e7ff;
+    --border-color: #4b5563;
+  }
+  html.theme-earth.dark {
+    --app-bg-color: #3e2723;
+    --app-text-color: #efebe9;
+    --header-bg-color: rgba(62, 39, 35, 0.8);
+    --modal-bg-color: #4e342e;
+    --button-hover-bg-color: #795548;
+    --link-active-text-color: #ffffff;
+    --border-color: #795548;
+  }
+  html.theme-pastel {
+    --app-bg-color: #fff0f5;
+    --app-text-color: #5c3c4c;
+    --header-bg-color: rgba(255, 240, 245, 0.8);
+    --modal-bg-color: #ffffff;
+    --button-hover-bg-color: #90e0d0;
+    --link-active-text-color: #333;
+    --border-color: #e1bee7;
+  }
+  html.theme-gray {
+    --app-bg-color: #f5f5f5;
+    --app-text-color: #333333;
+    --header-bg-color: rgba(238, 238, 238, 0.8);
+    --modal-bg-color: #ffffff;
+    --button-hover-bg-color: #bbbbbb;
+    --link-active-text-color: #ffffff;
+    --border-color: #b0b0b0;
+  }
+  
   /* ナビゲーションバースタイル */
   #top-nav-bar {
     background-color: var(--header-bg-color);
@@ -273,17 +327,14 @@
     cursor: pointer;
     user-select: none;
   }
-  </style>
-</head>
-<body class="text-base"> <!-- Base text color is now handled by body style above -->
-  
-<!-- ナビゲーションバー - ここから貼り付け開始 -->
+</style>
 
 <div id="top-nav-bar">
   <div style="max-width: 1280px; margin: 0 auto; padding: 0.5rem 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 1.5rem; font-size: 0.875rem;">
         <div class="nav-dropdown">
-          <span class="nav-dropdown-toggle hover:text-[--link-active-text-color] transition-colors">現代日本以外のNPC立ち絵</span>
+          <span class="nav-dropdown-toggle hover:text-[--link-active-text-color] transition-colors">NPC向け立ち絵配布</span>
           <div class="nav-dropdown-menu">
+            <a href="https://tatie.pages.dev/">現代日本</a>
             <a href="https://tatie2.pages.dev/">近未来・サイバーパンク</a>
             <a href="https://onlooker.booth.pm/items/7630511">レトロ日本(booth)</a>
           </div>
@@ -757,5 +808,6 @@
 </script>
 </body>
 </html>
+
 
 
