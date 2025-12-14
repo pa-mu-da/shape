@@ -569,9 +569,9 @@
       </button>
     </header>
 
-    <div class="w-full max-w-6xl flex flex-col lg:flex-row gap-8">
-      <div class="lg:w-1/3 controls-container rounded-xl p-6">
-        <div id="controls-panel" class="space-y-6">
+    <div class="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-start">
+      <div class="lg:w-1/3 controls-container rounded-xl p-4 lg:h-[calc(100vh-6rem)] lg:overflow-y-auto">
+        <div id="controls-panel" class="space-y-4">
           <div>
             <h3 class="text-xl font-semibold mb-3 pb-2 controls-section-header">一般設定</h3>
             <div class="mb-4">
@@ -627,6 +627,12 @@
                 <label for="patternColor" class="block text-sm font-medium mb-1.5 control-label">パターンの色
                   (またはグラデーション終了色)</label>
                 <input type="color" id="patternColor" class="rounded-md control-input">
+              </div>
+              <div class="mb-4">
+                <label for="patternParameter" class="block text-sm font-medium mb-1.5 control-label"
+                  id="patternParameterLabel">パターンの大きさ: <span id="patternParameterValue">50</span></label>
+                <input type="range" id="patternParameter" min="0" max="100" step="1"
+                  class="w-full h-2 rounded-lg appearance-none cursor-pointer control-input" disabled>
               </div>
             </div>
           </div>
@@ -690,7 +696,7 @@
         </div>
       </div>
 
-      <div class="lg:w-2/3 flex flex-col items-center gap-6">
+      <div class="lg:w-2/3 flex flex-col items-center gap-6 lg:sticky lg:top-8">
         <div id="canvas-render-container" class="rounded-xl p-3 sm:p-4">
           <canvas id="shapeCanvas" class="rounded-md" style="display: block;"></canvas>
         </div>
@@ -709,12 +715,15 @@
     const ShapeType = { CIRCLE: 'circle', POLYGON: 'polygon' };
     const CornerRadiusLevel = { NONE: 'none', SMALL: 'small', MEDIUM: 'medium', LARGE: 'large' };
     const Theme = { LIGHT: 'light', DARK: 'dark' };
+
+
     const PatternType = { NONE: 'none', STRIPE: 'stripe', BORDER: 'border', DOT: 'dot', CHECK: 'check', GRADIENT_LINEAR: 'gradient-linear', GRADIENT_RADIAL: 'gradient-radial' };
 
-    function createPattern(type, color) {
+    function createPattern(type, color, parameter) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const size = 20;
+      // パラメータ(0-100)をサイズ(4px-104px)に変換
+      const size = 4 + parameter;
       canvas.width = size;
       canvas.height = size;
 
@@ -755,6 +764,7 @@
       padding: 0,
       fillPattern: PatternType.NONE,
       patternColor: '#ffffff',
+      patternParameter: 50,
       outerStrokeEnabled: false,
       outerStrokeColor: '#000000',
       outerStrokeWidth: 5,
@@ -776,7 +786,11 @@
       fillOpacity: document.getElementById('fillOpacity'),
       fillOpacityValue: document.getElementById('fillOpacityValue'),
       fillPattern: document.getElementById('fillPattern'),
+      fillPattern: document.getElementById('fillPattern'),
       patternColor: document.getElementById('patternColor'),
+      patternParameter: document.getElementById('patternParameter'),
+      patternParameterLabel: document.getElementById('patternParameterLabel'),
+      patternParameterValue: document.getElementById('patternParameterValue'),
       strokeEnabled: document.getElementById('strokeEnabled'),
       strokeSettings: document.getElementById('stroke-settings'),
       strokeColor: document.getElementById('strokeColor'),
@@ -811,7 +825,7 @@
 
       let actualCornerRadius = 0;
       const {
-        shapeType, size, padding, fillEnabled, fillColor, fillOpacity, fillPattern, patternColor,
+        shapeType, size, padding, fillEnabled, fillColor, fillOpacity, fillPattern, patternColor, patternParameter,
         strokeEnabled, strokeColor, strokeWidth: configStrokeWidth,
         outerStrokeEnabled, outerStrokeColor, outerStrokeWidth,
         polygonSides, cornerRadiusLevel,
@@ -931,9 +945,32 @@
         // 2. Draw Pattern or Gradient
         if (fillPattern !== PatternType.NONE) {
           if (fillPattern === PatternType.GRADIENT_LINEAR) {
-            // Linear Gradient: Top-Left to Bottom-Right or similar? Let's do Top to Bottom for simplicity or diagonal. Diagonal is better.
-            // Bounding box of shape is basically (centerX - shapeRadius, centerY - shapeRadius) to (centerX + shapeRadius, centerY + shapeRadius)
-            const grad = ctx.createLinearGradient(centerX - shapeRadius, centerY - shapeRadius, centerX + shapeRadius, centerY + shapeRadius);
+            // Linear Gradient
+            // Map parameter 0-100 to angle 0-360 degrees
+            const angleDeg = (patternParameter / 100) * 360;
+            const angleRad = (angleDeg * Math.PI) / 180;
+
+            // Calculate gradient coordinates based on angle
+            // We want the gradient to cover the shape bounding box.
+            // Center is (centerX, centerY). 
+            // We define a line passing through center with angle.
+            // Start point is "behind" center, End point is "ahead" of center.
+            // Distance should be enough to cover the corner. Max radius is shapeRadius * sqrt(2) approx for square, but shapeRadius is enough for circle.
+            // Let's use shapeRadius for simplicity, or slightly larger for polygon corners.
+            const r = shapeRadius * 1.5;
+            const x1 = centerX - r * Math.cos(angleRad - Math.PI / 2); // -90 deg offset to start from top at 0? No, 0 is right.
+            // Let's stick to standard canvas angle: 0 is right, 90 is down.
+            // Usually linear gradient angle 0 means Left to Right.
+            // Let's assume 0 = Right, 90 = Down, 180 = Left, 270 = Up.
+            const dx = Math.cos(angleRad);
+            const dy = Math.sin(angleRad);
+
+            const startX = centerX - r * dx;
+            const startY = centerY - r * dy;
+            const endX = centerX + r * dx;
+            const endY = centerY + r * dy;
+
+            const grad = ctx.createLinearGradient(startX, startY, endX, endY);
             grad.addColorStop(0, fillColor);
             grad.addColorStop(1, patternColor);
             ctx.fillStyle = grad;
@@ -946,7 +983,7 @@
             ctx.fill();
           } else {
             // Pattern Overlay
-            const pattern = createPattern(fillPattern, patternColor);
+            const pattern = createPattern(fillPattern, patternColor, patternParameter);
             if (pattern) {
               ctx.fillStyle = pattern;
               ctx.fill();
@@ -989,6 +1026,25 @@
       dom.fillOpacityValue.textContent = currentConfig.fillOpacity.toFixed(2);
       dom.fillPattern.value = currentConfig.fillPattern;
       dom.patternColor.value = currentConfig.patternColor;
+
+      dom.patternParameter.value = currentConfig.patternParameter.toString();
+      dom.patternParameterValue.textContent = currentConfig.patternParameter.toString();
+
+      // Update label and disable state based on pattern type
+      let labelText = "パターンの大きさ";
+      let isDisabled = false;
+      if (currentConfig.fillPattern === PatternType.GRADIENT_LINEAR) {
+        labelText = "グラデーション角度";
+      } else if (currentConfig.fillPattern === PatternType.GRADIENT_RADIAL) {
+        labelText = "調整不可";
+        isDisabled = true;
+      } else if (currentConfig.fillPattern === PatternType.NONE) {
+        isDisabled = true;
+      }
+
+      dom.patternParameterLabel.childNodes[0].textContent = labelText + ": ";
+      dom.patternParameter.disabled = isDisabled;
+
       dom.strokeEnabled.checked = currentConfig.strokeEnabled;
       dom.strokeColor.value = currentConfig.strokeColor;
       dom.strokeWidth.value = currentConfig.strokeWidth.toString();
@@ -1004,7 +1060,7 @@
       let parsedValue = value;
       if (typeof DEFAULT_SHAPE_CONFIG[key] === 'number') {
         parsedValue = parseFloat(value);
-        if (['polygonSides', 'size', 'strokeWidth', 'padding', 'outerStrokeWidth'].includes(key)) {
+        if (['polygonSides', 'size', 'strokeWidth', 'padding', 'outerStrokeWidth', 'patternParameter'].includes(key)) {
           parsedValue = parseInt(value, 10);
         }
       }
@@ -1046,6 +1102,10 @@
       });
       dom.fillPattern.addEventListener('change', e => handleConfigChange('fillPattern', e.target.value));
       dom.patternColor.addEventListener('input', e => handleConfigChange('patternColor', e.target.value));
+      dom.patternParameter.addEventListener('input', e => {
+        handleConfigChange('patternParameter', e.target.value);
+        dom.patternParameterValue.textContent = e.target.value;
+      });
       dom.strokeEnabled.addEventListener('change', e => handleConfigChange('strokeEnabled', e.target.checked));
       dom.strokeColor.addEventListener('input', e => handleConfigChange('strokeColor', e.target.value));
       dom.strokeWidth.addEventListener('change', e => handleConfigChange('strokeWidth', e.target.value));
